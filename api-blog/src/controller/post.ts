@@ -8,6 +8,39 @@ import { Post, postSchema } from "../entity/post";
 @tagsAll(["Post"])
 export default class postController {
    
+    @request("get", "/post")
+    @summary("List all posts")
+    public static async getPosts(ctx: Context): Promise<void> {
+        const postRepository: Repository<Post> = getManager().getRepository(Post);
+
+        const post: Post[] = await postRepository.find();
+
+        ctx.status = 200;
+        ctx.body = post;
+
+    }
+
+    @request("get", "/post/{id}")
+    @summary("Find a post for id")
+    @path({
+        id: { type: "number", required: true, description: "id of post" } 
+    })
+    public static async getPost(ctx: Context): Promise<void>{
+
+        const postRepository: Repository<Post> = getManager().getRepository(Post);
+
+        const post: Post | undefined = await postRepository.findOne(+ctx.params.id || 0);
+        if(post){
+
+            ctx.status = 200;
+            ctx.body = post;
+        }else {
+            // return a BAD REQUEST status code and error message
+            ctx.status = 404;
+            ctx.body = "The post you are trying to retrieve doesn't exist in the db";
+        }
+    }
+
     @request("post", "/post")
     @summary("Insert a post")
     @body(postSchema)
